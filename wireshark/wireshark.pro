@@ -33,7 +33,7 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 INCLUDEPATH += D:/software/WpdPack/Include
-LIBS += D:/software/WpdPack/Lib/wpcap.lib libws2_32
+LIBS += D:/software/WpdPack/Lib/wpcap.lib -lws2_32
 
 RESOURCES += \
     src.qrc
