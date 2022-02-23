@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QString>
+#include "multhread.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -8,17 +9,37 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     showNetworkCard();
+
+    //因为这里是gui线程,如果抓包逻辑也放在gui线程,会将界面卡死,所以将相关逻辑放在新线程中
+    multhread* thread = new multhread;
+
     static bool index = false;
-    //把信号和槽联系起来
+    //把信号和槽联系起来,选中runandup,然后执行capture()
     connect(ui->actionrunandstop, &QAction::triggered, this, [=](){
         index = !index;
         if(index)
         {
-            capture();
+            int res = capture();
+            if(res != -1 && pointer)
+            {
+                thread->setPointer(pointer);
+                thread->setFlag();
+                thread->start();
+                //切换为抓包状态后,将开始图片切换为停止图片(共用按钮)
+                ui->actionrunandstop->setIcon(QIcon(":/stop.png"));
+                //因为选中网卡在抓包了,所以该下拉框不能再进行选择
+                ui->comboBox->setEnabled(false);
+            }
         }
         else
         {
-
+            thread->resetFlag();
+            thread->quit();
+            thread->wait();
+            ui->actionrunandstop->setIcon(QIcon(":/start.png"));
+            ui->comboBox->setEnabled(true);
+            pcap_close(pointer);
+            pointer = nullptr;
         }
     });
 }
@@ -54,6 +75,7 @@ void MainWindow::showNetworkCard()
 
 void MainWindow::on_comboBox_currentIndexChanged(int index)
 {
+    //选中哪个网卡时,会将该index的值传过来,锁定该设备
     int i = 0;
     if(index != 0)//第0个是提示信息,所以从后面开始
     {
