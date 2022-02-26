@@ -47,6 +47,92 @@ typedef struct ip_header{
     u_int  des_addr;
 }IP_HEADER;
 
+/*tcp header
++----------------------+---------------------+
+|         16 bit       |       16 bit        |
++----------------------+---------------------+
+|      source port     |  destination port   |
++----------------------+---------------------+
+|              sequence number               |
++----------------------+---------------------+
+|                 ack number                 |
++----+---------+-------+---------------------+
+|head| reserve | flags |     window size     |
++----+---------+-------+---------------------+
+|     checksum         |   urgent pointer    |
++----------------------+---------------------+
+*/
+typedef struct tcp_header
+{
+    u_short src_port;
+    u_short des_port;
+    u_int   sequence;
+    u_int   ack;
+    u_char  header_length;
+    u_char  flags;
+    u_short window_size;
+    u_short checksum;
+    u_short urgent;
+}TCP_HEADER;
 
+/*udp
++---------------------+---------------------+
+|        16 bit       |        16 bit       |
++---------------------+---------------------+
+|    source port      |   destination port  |
++---------------------+---------------------+
+| data package length |       checksum      |
++---------------------+---------------------+
+*/
+typedef struct udp_header
+{
+    u_short src_port;
+    u_short des_port;
+    u_short data_length;
+    u_short checksum;
+}UDP_HEADER;
+
+/*
+|<--------  ARP header  ------------>|
++------+--------+-----+------+-------+----------+---------+---------------+--------------+
+|2 byte| 2 byte |1byte| 1byte|2 byte |  6 byte  | 4 byte  |     6 byte    |     4 byte   |
++------+--------+-----+------+-------+----------+---------+---------------+--------------+
+| type |protocol|e_len|ip_len|op_type|source mac|source ip|destination mac|destination ip|
++------+--------+-----+------+-------+----------+---------+---------------+--------------+
+*/
+typedef struct arp_header
+{
+    u_short type;
+    u_short protocol;
+    u_char mac_length;
+    u_char ip_length;
+    u_short op_code;
+
+    u_char src_eth_addr[6];
+    u_char src_ip_addr[4];
+    u_char des_eth_addr[6];
+    u_char des_ip_addr[4];
+}ARP_HEADER;
+
+/*ICMP:ICMP分很多种类型,不过后面解析只争对常见的几种类型
++---------------------+---------------------+
+|  1 byte  |  1 byte  |        2 byte       |
++---------------------+---------------------+
+|   type   |   code   |       checksum      |
++---------------------+---------------------+
+|    identification   |       sequence      |
++---------------------+---------------------+
+|                  option                   |
++-------------------------------------------+
+*/
+//协议里面有个可选项字段,因为长度不固定,所以不放在结构体里面
+typedef struct icmp_header
+{
+    u_char type;
+    u_char code;
+    u_short checksum;
+    u_short identification;
+    u_short sequence;
+}ICMPHEADER;
 
 #endif // FORMAT_H
