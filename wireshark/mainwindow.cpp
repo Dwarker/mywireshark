@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QString>
+#include <QDebug>
 #include "multhread.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -42,6 +43,9 @@ MainWindow::MainWindow(QWidget *parent) :
             pointer = nullptr;
         }
     });
+
+    //第一个参数是信号的发送者, 第二个是发送的地址,第三个是信号的接收者,信号接收的地址
+    connect(thread, &multhread::send, this, &MainWindow::HandleMessage);
 }
 
 MainWindow::~MainWindow()
@@ -115,4 +119,8 @@ int MainWindow::capture()
         statusBar()->showMessage(device->name);
     }
     return 0;
+}
+void MainWindow::HandleMessage(datapackage data)
+{
+    qDebug() << data.getTimeStamp() << " " << data.getInfo();
 }

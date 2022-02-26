@@ -5,6 +5,7 @@
 
 #include "pcap.h"
 #include "winsock2.h"
+#include "datapackage.h"
 
 namespace Ui {
 class MainWindow;
@@ -22,6 +23,9 @@ public:
     int capture();
 private slots:
     void on_comboBox_currentIndexChanged(int index);
+
+private slots:
+    void HandleMessage(datapackage data);//信号的接收函数
 
 private:
     Ui::MainWindow *ui;

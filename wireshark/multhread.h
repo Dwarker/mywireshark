@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include "pcap.h"
+#include "datapackage.h"
 
 class multhread:public QThread
 {
@@ -15,7 +16,10 @@ public:
     void resetFlag();
 
     void run() override;
+    int ethernetPackageHandle(const u_char* pkt_content, QString& info);
 
+signals:
+    void send(datapackage data);//信号的发送函数
 private:
     pcap_t* pointer;
     struct pcap_pkthdr* header;//数据包头部
