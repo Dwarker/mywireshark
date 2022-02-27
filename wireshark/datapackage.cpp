@@ -59,13 +59,13 @@ QString datapackage::getPackageType()
 }
 
 //将一个字节数据转换成十六进制
-QString datapackage::byteToString(char *str, int size)
+QString datapackage::byteToString(u_char *str, int size)
 {
     QString res = "";
     for(int i = 0; i < size; i++)
     {
         char one = str[i] >> 4;
-        if(one > 0x0A)
+        if(one >= 0x0A)
         {
             one += 0x41 - 0x0A;
         }
@@ -75,7 +75,7 @@ QString datapackage::byteToString(char *str, int size)
         }
 
         char two = str[i] & 0x0F;
-        if(two > 0x0A)
+        if(two >= 0x0A)
         {
             two += 0x41 - 0x0A;
         }

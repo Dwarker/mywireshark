@@ -35,7 +35,9 @@ typedef struct ether_header{
 +-------------------------------------------------------------+
 */
 typedef struct ip_header{
-    u_char version_length; //version和head length分别占前四个位和后四个位
+    //version和head length分别占前四个位和后四个位
+    //(后四个位每个位单位长度是4个字节,并且后面四个位的大小经常是5,所以是ip的头部长度20个字节)
+    u_char version_length;
     u_char TOS;
     u_short total_length;
     u_short identification;

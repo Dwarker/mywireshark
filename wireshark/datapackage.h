@@ -13,7 +13,7 @@ private:
 
 protected:
     //将一个字节数据转换成十六进制
-    static QString byteToString(char* str, int size);
+    static QString byteToString(u_char* str, int size);
 
 public:
     const u_char* pkt_content;
