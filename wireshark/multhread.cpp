@@ -54,6 +54,9 @@ void multhread::run()
                 data.setInfo(info);
                 data.setDataLength(len);//设置数据包长度
                 data.setTimeStamp(timeString);
+                data.setPackageType(type);
+                data.setPointer(pkt_data, len);
+
                 emit send(data);
             }
         }

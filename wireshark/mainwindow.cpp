@@ -10,6 +10,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     showNetworkCard();
+    statusBar()->showMessage("welcome to shark!");
+    ui->toolBar->addAction(ui->actionrunandstop);
+    ui->toolBar->addAction(ui->actionclear);
+    countNumber = 0;
 
     //因为这里是gui线程,如果抓包逻辑也放在gui线程,会将界面卡死,所以将相关逻辑放在新线程中
     multhread* thread = new multhread;
@@ -20,6 +24,20 @@ MainWindow::MainWindow(QWidget *parent) :
         index = !index;
         if(index)
         {
+            //每次捕获前,先清空数据
+            ui->tableWidget->clearContents();
+            ui->tableWidget->setRowCount(0);
+            countNumber = 0;
+
+            int dataSize = this->pData.size();
+            for(int i = 0; i < dataSize; i++)
+            {
+                free((char*)(this->pData[i].pkt_content));
+                this->pData[i].pkt_content = nullptr;
+            }
+
+            QVector<datapackage>().swap(pData);
+            //
             int res = capture();
             if(res != -1 && pointer)
             {
@@ -30,6 +48,12 @@ MainWindow::MainWindow(QWidget *parent) :
                 ui->actionrunandstop->setIcon(QIcon(":/stop.png"));
                 //因为选中网卡在抓包了,所以该下拉框不能再进行选择
                 ui->comboBox->setEnabled(false);
+            }
+            else
+            {
+                //打开设备失败
+                index = !index;
+                countNumber = 0;
             }
         }
         else
@@ -46,6 +70,29 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //第一个参数是信号的发送者, 第二个是发送的地址,第三个是信号的接收者,信号接收的地址
     connect(thread, &multhread::send, this, &MainWindow::HandleMessage);
+
+    //设置工具栏相关属性
+    ui->toolBar->setMovable(false);
+    ui->tableWidget->setColumnCount(7);
+    ui->tableWidget->verticalHeader()->setDefaultSectionSize(30);
+    QStringList title = {"NO", "Time", "Source", "Destination",
+                        "Protocol", "Length", "Info"};
+    ui->tableWidget->setHorizontalHeaderLabels(title);
+
+#if 0
+    ui->tableWidget->setColumnWidth(0, 50);
+    ui->tableWidget->setColumnWidth(1, 150);
+    ui->tableWidget->setColumnWidth(2, 300);
+    ui->tableWidget->setColumnWidth(3, 300);
+    ui->tableWidget->setColumnWidth(4, 100);
+    ui->tableWidget->setColumnWidth(5, 100);
+    ui->tableWidget->setColumnWidth(6, 1000);
+#endif
+
+    //设置网格线
+    ui->tableWidget->setShowGrid(false);
+    ui->tableWidget->verticalHeader()->setVisible(false);
+    ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
 MainWindow::~MainWindow()
@@ -122,5 +169,36 @@ int MainWindow::capture()
 }
 void MainWindow::HandleMessage(datapackage data)
 {
-    qDebug() << data.getTimeStamp() << " " << data.getInfo();
+#if 1
+    //qDebug() << data.getTimeStamp() << " " << data.getInfo();
+    //每个数据包都会触发一次槽函数,所以槽函数只需要处理一个数据包的内容
+    ui->tableWidget->insertRow(countNumber);
+    this->pData.push_back(data);
+    QString type = data.getPackageType();
+    QColor color;
+    if(type == "TCP")
+        color = QColor(216, 191, 216);
+    else if(type == "UDP")
+        color = QColor(144, 238, 144);
+    else if(type == "ARP")
+        color = QColor(238, 238, 0);
+    else if(type == "DNS")
+        color = QColor(255, 255, 224);
+    else
+        color = QColor(255, 218, 185);
+
+    ui->tableWidget->setItem(countNumber, 0, new QTableWidgetItem(QString::number(countNumber)));
+    ui->tableWidget->setItem(countNumber, 1, new QTableWidgetItem(data.getTimeStamp()));
+    ui->tableWidget->setItem(countNumber, 2, new QTableWidgetItem(data.getSource()));
+    ui->tableWidget->setItem(countNumber, 3, new QTableWidgetItem(data.getDestination()));
+    ui->tableWidget->setItem(countNumber, 4, new QTableWidgetItem(type));
+    ui->tableWidget->setItem(countNumber, 5, new QTableWidgetItem(data.getDataLength()));
+    ui->tableWidget->setItem(countNumber, 6, new QTableWidgetItem(data.getInfo()));
+
+    for(int i = 0; i < 7; i++)
+    {
+        ui->tableWidget->item(countNumber, i)->setBackgroundColor(color);
+    }
+    countNumber++;
+#endif
 }
